@@ -2,8 +2,13 @@ provider "aws" {
   
   region = "ap-south-1"  
 }
+variable "client" {
+  description = "Client name to distinguish resources"
+  type        = string
+}
+
 resource "aws_instance" "worker" {
-  ami           = "ami-00d3c4ab760d46f3b"
+  ami           = "ami-07381000ce5b566ef"
   instance_type = "t2.medium"
   key_name      = "poc"
   user_data = <<-EOF
@@ -11,12 +16,14 @@ resource "aws_instance" "worker" {
     hostnamectl set-hostname worker-node-01 
     systemctl enable docker && systemctl start docker
     sleep 10
-    kubeadm join 172.31.14.94:6443 --token jf9lvs.94jrh9ooguuaimqk \
-      --discovery-token-ca-cert-hash sha256:7216869f8d7575313196563ec7dc409b4cd8718ace0b70929a6420c8bda9b2e7 \
+    kubeadm join 172.31.15.168:6443 --token x31v4h.ojg4aakmrzas2cjg \
+      --discovery-token-ca-cert-hash sha256:5b15698ea050b0ed4ec9a2d5dbff481e3ad0cfa7138dbadaea54439e3569f35e \
       --cri-socket unix:///var/run/cri-dockerd.sock
   EOF
   tags = {
-    Name = "worker-node-01"
+    Name        = "${var.client}-worker-node"
+    Environment = "Client-${var.client}"
+    ManagedBy   = "Terraform"
   }
   root_block_device {
     volume_size           = 20
